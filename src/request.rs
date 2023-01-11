@@ -276,11 +276,15 @@ mod tests {
         let x = SrpClient::<Sha256>::compute_x(identity_hash.as_slice(), &salt);
         println!("Generated x: {:?}", base64::encode(&x.to_bytes_be()));
 
+        let b_pub = base64::decode("MkPD5CHIq5NrVb1BYnz/SA==").unwrap();
+        let a_pub = base64::decode("MkPD5CHIq5NrVb1BYnz/SA==").unwrap();
+        
+        let client = SrpClient::<Sha256>::new(&G_2048);
         let verifier: SrpClientVerifier<Sha256> =
-            SrpClient::<Sha256>::process_reply(&a, &[], &password_buf, salt, b_pub).unwrap();
+            SrpClient::<Sha256>::process_reply(&client, &a_pub, &[], &password_buf, &salt, &b_pub).unwrap();
 
         let m = verifier.proof();
-        println!("M: {:?}", m);
+        println!("M: {:?}", base64::encode(&m));
     }
 
     #[test]
