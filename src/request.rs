@@ -270,13 +270,23 @@ mod tests {
         println!(
             "PBKDF2 Encrypted password: {:?}",
             base64::encode(&password_buf)
-        )
+        );
+
+        let identity_hash = SrpClient::<Sha256>::compute_identity_hash(&[], &password_buf);
+        let x = SrpClient::<Sha256>::compute_x(identity_hash.as_slice(), &salt);
+        println!("Generated x: {:?}", base64::encode(&x.to_bytes_be()));
+
+        let verifier: SrpClientVerifier<Sha256> =
+            SrpClient::<Sha256>::process_reply(&a, &[], &password_buf, salt, b_pub).unwrap();
+
+        let m = verifier.proof();
+        println!("M: {:?}", m);
     }
 
     #[test]
     fn print_n_g() {
-        println!("wow");
-        println!("g2048 g: {:?}", &G_2048.g);
-        println!("g2048 n: {:?}", &G_2048.n);
+        // println!("Print N/G test: ");
+        // println!("g2048 g: {:?}", &G_2048.g);
+        // println!("g2048 n: {:?}", &G_2048.n);
     }
 }
