@@ -163,8 +163,10 @@ impl GsaClient {
             _ => panic!("Invalid response"),
         };
         let salt = res.get("s").unwrap().as_data().unwrap();
+        println!("Salt (base64): {}", base64::encode(salt));
         let b_pub = res.get("B").unwrap().as_data().unwrap();
         let iters = res.get("i").unwrap().as_signed_integer().unwrap();
+        println!("Iterations: {}", iters);
         let c = res.get("c").unwrap().as_string().unwrap();
 
         let mut password_hasher = sha2::Sha256::new();
@@ -238,5 +240,43 @@ impl GsaClient {
         println!("{res}");
 
         todo!()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn print_tests_pass() {
+        // not a real account
+        let username = "apple3@f1sh.me";
+        let password = "WaffleTest123";
+        let salt = base64::decode("MkPD5CHIq5NrVb1BYnz/SA==").unwrap();
+        let iters = 20465;
+
+        let mut password_hasher = sha2::Sha256::new();
+        password_hasher.update(&password.as_bytes());
+        let hashed_password = password_hasher.finalize();
+        println!("Hashed password: {:?}", base64::encode(&hashed_password));
+
+        let mut password_buf = [0u8; 32];
+        pbkdf2::pbkdf2::<hmac::Hmac<Sha256>>(
+            &hashed_password,
+            &salt,
+            iters as u32,
+            &mut password_buf,
+        );
+        println!(
+            "PBKDF2 Encrypted password: {:?}",
+            base64::encode(&password_buf)
+        )
+    }
+
+    #[test]
+    fn print_n_g() {
+        println!("wow");
+        println!("g2048 g: {:?}", &G_2048.g);
+        println!("g2048 n: {:?}", &G_2048.n);
     }
 }

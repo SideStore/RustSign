@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::Error;
 
-pub const SIDELOADLY_ANISETTE: &str = "https://sideloadly.io/anisette/irGb3Quww8zrhgqnzmrx";
+pub const SIDELOADLY_ANISETTE: &str = "https://ani.f1sh.me/";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AnisetteData {
