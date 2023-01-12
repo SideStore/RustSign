@@ -188,6 +188,8 @@ impl<'a, D: Digest> SrpClient<'a, D> {
     ) -> Result<SrpClientVerifier<D>, SrpAuthError> {
         let a = BigUint::from_bytes_be(a);
         let a_pub = self.compute_a_pub(&a);
+        // let a_pub = BigUint::from_bytes_be(a);
+
         let b_pub = BigUint::from_bytes_be(b_pub);
 
         // Safeguard against malicious B

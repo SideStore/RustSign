@@ -250,6 +250,7 @@ mod tests {
     #[test]
     fn print_tests_pass() {
         // not a real account
+        let bytes_a = base64::decode("XChHXELsQ+ljxTFbvRMUsGJxiDIlOh9f8e+JzoegmVcOdAXXtPNzkHpAbAgSjyA+vXrTA93+BUu8EJ9+4xZu9g==").unwrap();
         let username = "apple3@f1sh.me";
         let password = "WaffleTest123";
         let salt = base64::decode("MkPD5CHIq5NrVb1BYnz/SA==").unwrap();
@@ -276,15 +277,19 @@ mod tests {
         let x = SrpClient::<Sha256>::compute_x(identity_hash.as_slice(), &salt);
         println!("Generated x: {:?}", base64::encode(&x.to_bytes_be()));
 
-        let b_pub = base64::decode("MkPD5CHIq5NrVb1BYnz/SA==").unwrap();
-        let a_pub = base64::decode("MkPD5CHIq5NrVb1BYnz/SA==").unwrap();
-        
-        let client = SrpClient::<Sha256>::new(&G_2048);
-        let verifier: SrpClientVerifier<Sha256> =
-            SrpClient::<Sha256>::process_reply(&client, &a_pub, &[], &password_buf, &salt, &b_pub).unwrap();
+        let a_pub = base64::decode("nCDIq05LEfuaSRkfwQfT4pN+PpchtGP21RymDzshLDeO4QCVIjrcMFo0gUKwYKeYWA2okjEs4uRXm5yQ2hvW0DI+996B+KA/owFLVr19v+4J6MKoxzWXvJgsSAXfMbAq98Pv5gRVWwWPIb8WmeGLq+Ps6yAoIv04mskaEICx7kA+uDRliRic9/VbMwmpZc+TkVvarkbdMofQVirAz8CBmRsQjj1gvxSYmeJc9XTXL8V1UxcXAuaLy98pp/c2D0PwYXoHonIxy+KZb+79zGbIn9C+bF+bDdMZeED1tatICyypjV5ClXct/yr75YlfJByw3tSNSJSydPwyV+iySPsEMw==").unwrap();
+        let b_pub = base64::decode("JiAl2BWHXq7aWGq8vcaxjTWrhjPSLQVDKYFQTfWIvmC+PVLcz9ST2ew9jS6RICOUSLiJlQ3TLlKFuUy0SfqgjchS9phjgDjbR7y5RDrPTYPK6VRJweuQFRV3hMQXQBrIxHmznpkgar+JWqd4SjZ/xIoblzC5F76/K3OUgn3SINoes51SKreAsG4JXwfPJ3FLco+C/eWGqp4udqJMsfvfI35LLT+pSvxxa8/wRsvfUL0uhMsBoa6TJjXHV1AMT5P0aI/QsiLEy08qAU9RNa2pChtghVZLAPvsC3Nz7Tzfd7q++/+VJSRKmpaZanpfr7WmR5g4bOoIZxXZdVRxSept5Q==").unwrap();
 
-        let m = verifier.proof();
-        println!("M: {:?}", base64::encode(&m));
+        // let client = SrpClient::<Sha256>::new(&G_2048);
+        // let verifier: SrpClientVerifier<Sha256> =
+        //     SrpClient::<Sha256>::process_reply(&client, &a_pub, &[], &password_buf, &salt, &b_pub)
+        //         .unwrap();
+
+        // let m = verifier.proof();
+        // println!("M: {:?}", base64::encode(&m));
+
+        let randoma: Vec<u8> = (0..64).map(|_| rand::random::<u8>()).collect();
+        println!("{}", base64::encode(&randoma));
     }
 
     #[test]
