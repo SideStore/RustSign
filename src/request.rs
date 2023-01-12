@@ -2,6 +2,7 @@
 
 use std::sync::Arc;
 
+use num_bigint::BigUint;
 use rustls::{ClientConfig, RootCertStore};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -104,7 +105,7 @@ pub struct RequestHeader {
 impl GsaClient {
     pub fn new(username: String, password: String, anisette: AnisetteData) -> Self {
         let client = SrpClient::<Sha256>::new(&G_2048);
-        let a: Vec<u8> = (0..64).map(|_| rand::random::<u8>()).collect();
+        let a: Vec<u8> = (0..32).map(|_| rand::random::<u8>()).collect();
         let a_pub = client.compute_public_ephemeral(&a);
 
         let header = RequestHeader {
@@ -182,7 +183,7 @@ impl GsaClient {
         );
 
         let verifier: SrpClientVerifier<Sha256> = client
-            .process_reply(&a, &[], &password_buf, salt, b_pub)
+            .process_reply(&a, &username.as_bytes(), &password_buf, salt, b_pub)
             .unwrap();
 
         let m = verifier.proof();
@@ -253,13 +254,13 @@ mod tests {
         let bytes_a = base64::decode("XChHXELsQ+ljxTFbvRMUsGJxiDIlOh9f8e+JzoegmVcOdAXXtPNzkHpAbAgSjyA+vXrTA93+BUu8EJ9+4xZu9g==").unwrap();
         let username = "apple3@f1sh.me";
         let password = "WaffleTest123";
-        let salt = base64::decode("MkPD5CHIq5NrVb1BYnz/SA==").unwrap();
-        let iters = 20465;
+        let salt = base64::decode("6fK6ailLUcp2kJswJVrKjQ==").unwrap();
+        let iters = 20832;
 
         let mut password_hasher = sha2::Sha256::new();
         password_hasher.update(&password.as_bytes());
         let hashed_password = password_hasher.finalize();
-        println!("Hashed password: {:?}", base64::encode(&hashed_password));
+        // println!("Hashed password: {:?}", base64::encode(&hashed_password));
 
         let mut password_buf = [0u8; 32];
         pbkdf2::pbkdf2::<hmac::Hmac<Sha256>>(
@@ -268,28 +269,42 @@ mod tests {
             iters as u32,
             &mut password_buf,
         );
-        println!(
-            "PBKDF2 Encrypted password: {:?}",
-            base64::encode(&password_buf)
-        );
+        // println!("PBKDF2 Encrypted password: {:?}",base64::encode(&password_buf));
 
         let identity_hash = SrpClient::<Sha256>::compute_identity_hash(&[], &password_buf);
         let x = SrpClient::<Sha256>::compute_x(identity_hash.as_slice(), &salt);
-        println!("Generated x: {:?}", base64::encode(&x.to_bytes_be()));
 
-        let a_pub = base64::decode("nCDIq05LEfuaSRkfwQfT4pN+PpchtGP21RymDzshLDeO4QCVIjrcMFo0gUKwYKeYWA2okjEs4uRXm5yQ2hvW0DI+996B+KA/owFLVr19v+4J6MKoxzWXvJgsSAXfMbAq98Pv5gRVWwWPIb8WmeGLq+Ps6yAoIv04mskaEICx7kA+uDRliRic9/VbMwmpZc+TkVvarkbdMofQVirAz8CBmRsQjj1gvxSYmeJc9XTXL8V1UxcXAuaLy98pp/c2D0PwYXoHonIxy+KZb+79zGbIn9C+bF+bDdMZeED1tatICyypjV5ClXct/yr75YlfJByw3tSNSJSydPwyV+iySPsEMw==").unwrap();
-        let b_pub = base64::decode("JiAl2BWHXq7aWGq8vcaxjTWrhjPSLQVDKYFQTfWIvmC+PVLcz9ST2ew9jS6RICOUSLiJlQ3TLlKFuUy0SfqgjchS9phjgDjbR7y5RDrPTYPK6VRJweuQFRV3hMQXQBrIxHmznpkgar+JWqd4SjZ/xIoblzC5F76/K3OUgn3SINoes51SKreAsG4JXwfPJ3FLco+C/eWGqp4udqJMsfvfI35LLT+pSvxxa8/wRsvfUL0uhMsBoa6TJjXHV1AMT5P0aI/QsiLEy08qAU9RNa2pChtghVZLAPvsC3Nz7Tzfd7q++/+VJSRKmpaZanpfr7WmR5g4bOoIZxXZdVRxSept5Q==").unwrap();
+        // apub: N2XHuh/4P1urPoBvDocF0RCRIl2pliZYqg9p6wGH0nnJdckJPn3M00jEqoM4teqH03HjG1murdcZiNHb5YayufW//+asW01XB7nYIIVvGiUFLRypYITEKYWBQ6h2q02GaZspYJKy98V8Fwcvr0ri+al7zJo1X1aoRKINyjV5TywhhwmTleI1qJkf+JBRYKKqO1XFtOTpQsysWD3ZJdK3K78kSgT3q0kXE3oDRMiHPAO77GFJZErYTuvI6QPRbOgcrn+RKV6AsjR5tUQAoSGRdtibdZTAQijJg788qVg+OFVCNZoY9GYVxa+Ze1bPGdkkgCYicTE8iNFG9KlJ+QpKgQ==
 
-        // let client = SrpClient::<Sha256>::new(&G_2048);
-        // let verifier: SrpClientVerifier<Sha256> =
-        //     SrpClient::<Sha256>::process_reply(&client, &a_pub, &[], &password_buf, &salt, &b_pub)
-        //         .unwrap();
+        let a_random = base64::decode("ywN1O32vmBogb5Fyt9M7Tn8bbzLtDDbcYgPFpSy8n9E=").unwrap();
+        let client = SrpClient::<Sha256>::new(&G_2048);
 
-        // let m = verifier.proof();
-        // println!("M: {:?}", base64::encode(&m));
+        let a_pub_compute =
+            SrpClient::<Sha256>::compute_a_pub(&client, &BigUint::from_bytes_be(&a_random));
+        // expect it to be same to a_pub
+        println!(
+            "compute a_pub: {:?}",
+            base64::encode(&a_pub_compute.to_bytes_be())
+        );
 
-        let randoma: Vec<u8> = (0..64).map(|_| rand::random::<u8>()).collect();
-        println!("{}", base64::encode(&randoma));
+        let b_pub = base64::decode("HlWxsRmNi/9DCGxYCoqCTfdSvpbx3mrgFLQfOsgf3Rojn7MQQN/g63PwlBghUcVVB4//yAaRRnz/VIByl8thA9AKuVZl8k52PAHKSh4e7TuXSeYCFr0+GYu8/hFdMDl42219uzSuOXuaKGVKq6hxEAf3n3uXXgQRkXWtLFJ5nn1wq/emf46hYAHzc/pYyvckAdh9WDCw95IXbzKD8LcPw/0ZQoydMuXgW2ZKZ52fiyEs94IZ7L5RLL7jY1nVdwtsp2fxeqiZ3DNmVZ2GdNrbJGT//160tyd2evtUtehr8ygXNzjWdjV0cc4+1F38ywSPFyieVzVTYzDywRllgo3A5A==").unwrap();
+        println!("fixed b_pub: {:?}", base64::encode(&b_pub));
+        println!("");
+
+        println!("salt: {:?} iterations: {:?}", base64::encode(&salt), iters);
+
+        let verifier: SrpClientVerifier<Sha256> = SrpClient::<Sha256>::process_reply(
+            &client,
+            &a_random,
+            // &a_pub,
+            username.as_bytes(),
+            &password_buf,
+            &salt,
+            &b_pub,
+        )
+        .unwrap();
+
+        let m = verifier.proof();
     }
 
     #[test]

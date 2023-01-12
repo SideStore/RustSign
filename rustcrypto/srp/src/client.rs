@@ -83,10 +83,9 @@
 //! send_registration_data(username, salt, &pwd_verifier);
 //! ```
 
-use std::marker::PhantomData;
-
 use digest::{Digest, Output};
 use num_bigint::BigUint;
+use std::marker::PhantomData;
 use subtle::ConstantTimeEq;
 
 use crate::types::{SrpAuthError, SrpGroup};
@@ -187,8 +186,8 @@ impl<'a, D: Digest> SrpClient<'a, D> {
         b_pub: &[u8],
     ) -> Result<SrpClientVerifier<D>, SrpAuthError> {
         let a = BigUint::from_bytes_be(a);
-        let a_pub = self.compute_a_pub(&a);
-        // let a_pub = BigUint::from_bytes_be(a);
+        // let a_pub = BigUint::from_bytes_be(&a_pub_bytes);
+        let a_pub = Self::compute_a_pub(&self, &a);
 
         let b_pub = BigUint::from_bytes_be(b_pub);
 
@@ -199,7 +198,7 @@ impl<'a, D: Digest> SrpClient<'a, D> {
 
         let u = compute_u::<D>(&a_pub.to_bytes_be(), &b_pub.to_bytes_be());
         let k = compute_k::<D>(self.params);
-        let identity_hash = Self::compute_identity_hash(username, password);
+        let identity_hash = Self::compute_identity_hash(&[], password);
         let x = Self::compute_x(identity_hash.as_slice(), salt);
 
         let key = self.compute_premaster_secret(&b_pub, &k, &x, &a, &u);
@@ -214,6 +213,11 @@ impl<'a, D: Digest> SrpClient<'a, D> {
         );
 
         let m2 = compute_m2::<D>(&a_pub.to_bytes_be(), &m1, &key.to_bytes_be());
+
+        println!("m1: {:?}", base64::encode(&m1));
+        println!("x: {}", base64::encode(&x.to_bytes_be()));
+        println!("k: {}", base64::encode(&k.to_bytes_be()));
+        println!("u: {}", base64::encode(&u.to_bytes_be()));
 
         Ok(SrpClientVerifier {
             m1,
