@@ -240,6 +240,19 @@ impl GsaClient {
 
         println!("{res}");
 
+        let res: plist::Dictionary = plist::from_bytes(res.as_bytes()).unwrap();
+        let res: plist::Value = res.get("Response").unwrap().to_owned();
+        let res = match res {
+            plist::Value::Dictionary(dict) => dict,
+            _ => panic!("Invalid response"),
+        };
+
+        let m2 = res.get("M2").unwrap().as_data().unwrap();
+        println!("M2: {:?}", m2);
+        verifier.verify_server(&m2).unwrap();
+
+        print!("Success!");
+        println!("shared key {:?}", base64::encode(verifier.key()));
         todo!()
     }
 }

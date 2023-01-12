@@ -202,17 +202,18 @@ impl<'a, D: Digest> SrpClient<'a, D> {
         let x = Self::compute_x(identity_hash.as_slice(), salt);
 
         let key = self.compute_premaster_secret(&b_pub, &k, &x, &a, &u);
+        let key = D::digest(key.to_bytes_be());
 
         let m1 = compute_m1::<D>(
             &a_pub.to_bytes_be(),
             &b_pub.to_bytes_be(),
-            &key.to_bytes_be(),
+            &key,
             username,
             salt,
             self.params,
         );
 
-        let m2 = compute_m2::<D>(&a_pub.to_bytes_be(), &m1, &key.to_bytes_be());
+        let m2 = compute_m2::<D>(&a_pub.to_bytes_be(), &m1, &key);
 
         println!("m1: {:?}", base64::encode(&m1));
         println!("x: {}", base64::encode(&x.to_bytes_be()));
@@ -222,7 +223,7 @@ impl<'a, D: Digest> SrpClient<'a, D> {
         Ok(SrpClientVerifier {
             m1,
             m2,
-            key: key.to_bytes_be(),
+            key: key.to_vec(),
         })
     }
 }
@@ -242,6 +243,8 @@ impl<D: Digest> SrpClientVerifier<D> {
 
     /// Verify server reply to verification data.
     pub fn verify_server(&self, reply: &[u8]) -> Result<(), SrpAuthError> {
+        println!("local m2: {:?}", base64::encode(&self.m2));
+        println!("remote m2: {:?}", base64::encode(reply));
         if self.m2.ct_eq(reply).unwrap_u8() != 1 {
             // aka == 0
             Err(SrpAuthError::BadRecordMac("server".to_owned()))

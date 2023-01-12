@@ -61,7 +61,7 @@ pub fn compute_m1<D: Digest>(
     d.update(salt);
     d.update(a_pub);
     d.update(b_pub);
-    d.update(D::digest(key));
+    d.update(key);
     d.finalize()
 }
 
