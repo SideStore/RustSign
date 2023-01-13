@@ -35,7 +35,6 @@ pub fn compute_m1<D: Digest>(
     salt: &[u8],
     params: &SrpGroup,
 ) -> Output<D> {
-    println!("key: {:?}", base64::encode(D::digest(key).as_slice()));
     let n = params.n.to_bytes_be();
     let g_bytes = params.g.to_bytes_be();
     //pad g and n to the same length
@@ -50,10 +49,6 @@ pub fn compute_m1<D: Digest>(
     for i in 0..g_hash.len() {
         g_hash[i] ^= n_hash[i];
     }
-    // print ghash
-    println!("xor'ed hash {:?}", base64::encode(&g_hash));
-    println!("username hash {:?}", base64::encode(D::digest(username)));
-    //hash username
 
     let mut d = D::new();
     d.update(&g_hash);

@@ -1,7 +1,9 @@
-// Jackson Coxson
-
 use std::sync::Arc;
 
+use crate::anisette::AnisetteData;
+
+use cbc::cipher::{BlockDecryptMut, KeyIvInit};
+use hmac::{Hmac, Mac};
 use num_bigint::BigUint;
 use rustls::{ClientConfig, RootCertStore};
 use serde::{Deserialize, Serialize};
@@ -12,7 +14,14 @@ use srp::{
 };
 use ureq::AgentBuilder;
 
-use crate::anisette::AnisetteData;
+use aes::cipher::{
+    block_padding::{Padding, Pkcs7},
+    generic_array::GenericArray,
+    BlockEncryptMut, BlockSizeUser,
+};
+
+type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
+type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
 const GSA_ENDPOINT: &str = "https://gsa.apple.com/grandslam/GsService2";
 const APPLE_ROOT: &[u8] = &[
@@ -248,11 +257,56 @@ impl GsaClient {
         };
 
         let m2 = res.get("M2").unwrap().as_data().unwrap();
+        let spd = res.get("spd").unwrap().as_data().unwrap();
         println!("M2: {:?}", m2);
         verifier.verify_server(&m2).unwrap();
 
         print!("Success!");
         println!("shared key {:?}", base64::encode(verifier.key()));
+
+        //python code
+        //         extra_data_key = create_session_key(usr, "extra data key:")
+        // extra_data_iv = create_session_key(usr, "extra data iv:")
+        // print("extra_data_key", b64encode(extra_data_key).decode("utf-8"))
+        // print("extra_data_iv", b64encode(extra_data_iv).decode("utf-8"))
+        // # Get only the first 16 bytes of the iv
+        // extra_data_iv = extra_data_iv[:16]
+
+        // # Decrypt with AES CBC
+        // cipher = Cipher(algorithms.AES(extra_data_key), modes.CBC(extra_data_iv))
+        // decryptor = cipher.decryptor()
+        // data = decryptor.update(data) + decryptor.finalize()
+        // # Remove PKCS#7 padding
+        // padder = padding.PKCS7(128).unpadder()
+        // return padder.update(data) + padder.finalize()
+
+        type hmac256 = Hmac<Sha256>;
+        let mut hmac_key = hmac256::new_from_slice(&verifier.key()).expect("");
+        hmac_key.update(b"extra data key:");
+        let key = &hmac_key.finalize().into_bytes() as &[u8];
+        println!("key: {:?}", base64::encode(&key));
+
+        let mut hmac_iv = hmac256::new_from_slice(&verifier.key()).expect("");
+        hmac_iv.update(b"extra data iv:");
+        let iv = hmac_iv.finalize().into_bytes();
+        let iv = &iv[..16] as &[u8];
+        println!("iv: {:?}", base64::encode(&iv));
+
+        //data = res["spd"]
+
+        type Decrypt = cbc::Decryptor<aes::Aes128>;
+        let mut decryptor = Decrypt::new_from_slices(key, iv).unwrap();
+        let mut data = spd.to_vec();
+        let mut buffer = vec![0; data.len()];
+        let mut buffer: &mut GenericArray<u8> = GenericArray::from_mut_slice(&mut buffer);
+        decryptor.decrypt_padded_mut(&mut buffer).unwrap();
+        // let mut buffer = GenericArray::from_mut_slice(&mut buffer);
+
+        let mut padder = Pkcs7::unpad(&mut buffer).unwrap();
+
+        println!("buffer: {:?}", buffer);
+
+        // let
         todo!()
     }
 }

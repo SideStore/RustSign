@@ -215,11 +215,6 @@ impl<'a, D: Digest> SrpClient<'a, D> {
 
         let m2 = compute_m2::<D>(&a_pub.to_bytes_be(), &m1, &key);
 
-        println!("m1: {:?}", base64::encode(&m1));
-        println!("x: {}", base64::encode(&x.to_bytes_be()));
-        println!("k: {}", base64::encode(&k.to_bytes_be()));
-        println!("u: {}", base64::encode(&u.to_bytes_be()));
-
         Ok(SrpClientVerifier {
             m1,
             m2,
