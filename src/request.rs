@@ -24,64 +24,7 @@ type Aes128CbcEnc = cbc::Encryptor<aes::Aes128>;
 type Aes128CbcDec = cbc::Decryptor<aes::Aes128>;
 
 const GSA_ENDPOINT: &str = "https://gsa.apple.com/grandslam/GsService2";
-const APPLE_ROOT: &[u8] = &[
-    48, 130, 4, 187, 48, 130, 3, 163, 160, 3, 2, 1, 2, 2, 1, 2, 48, 13, 6, 9, 42, 134, 72, 134,
-    247, 13, 1, 1, 5, 5, 0, 48, 98, 49, 11, 48, 9, 6, 3, 85, 4, 6, 19, 2, 85, 83, 49, 19, 48, 17,
-    6, 3, 85, 4, 10, 19, 10, 65, 112, 112, 108, 101, 32, 73, 110, 99, 46, 49, 38, 48, 36, 6, 3, 85,
-    4, 11, 19, 29, 65, 112, 112, 108, 101, 32, 67, 101, 114, 116, 105, 102, 105, 99, 97, 116, 105,
-    111, 110, 32, 65, 117, 116, 104, 111, 114, 105, 116, 121, 49, 22, 48, 20, 6, 3, 85, 4, 3, 19,
-    13, 65, 112, 112, 108, 101, 32, 82, 111, 111, 116, 32, 67, 65, 48, 30, 23, 13, 48, 54, 48, 52,
-    50, 53, 50, 49, 52, 48, 51, 54, 90, 23, 13, 51, 53, 48, 50, 48, 57, 50, 49, 52, 48, 51, 54, 90,
-    48, 98, 49, 11, 48, 9, 6, 3, 85, 4, 6, 19, 2, 85, 83, 49, 19, 48, 17, 6, 3, 85, 4, 10, 19, 10,
-    65, 112, 112, 108, 101, 32, 73, 110, 99, 46, 49, 38, 48, 36, 6, 3, 85, 4, 11, 19, 29, 65, 112,
-    112, 108, 101, 32, 67, 101, 114, 116, 105, 102, 105, 99, 97, 116, 105, 111, 110, 32, 65, 117,
-    116, 104, 111, 114, 105, 116, 121, 49, 22, 48, 20, 6, 3, 85, 4, 3, 19, 13, 65, 112, 112, 108,
-    101, 32, 82, 111, 111, 116, 32, 67, 65, 48, 130, 1, 34, 48, 13, 6, 9, 42, 134, 72, 134, 247,
-    13, 1, 1, 1, 5, 0, 3, 130, 1, 15, 0, 48, 130, 1, 10, 2, 130, 1, 1, 0, 228, 145, 169, 9, 31,
-    145, 219, 30, 71, 80, 235, 5, 237, 94, 121, 132, 45, 235, 54, 162, 87, 76, 85, 236, 139, 25,
-    137, 222, 249, 75, 108, 245, 7, 171, 34, 48, 2, 232, 24, 62, 248, 80, 9, 211, 127, 65, 168,
-    152, 249, 209, 202, 102, 156, 36, 107, 17, 208, 163, 187, 228, 27, 42, 195, 31, 149, 158, 122,
-    12, 164, 71, 139, 91, 212, 22, 55, 51, 203, 196, 15, 77, 206, 20, 105, 209, 201, 25, 114, 245,
-    93, 14, 213, 127, 95, 155, 242, 37, 3, 186, 85, 143, 77, 93, 13, 241, 100, 53, 35, 21, 75, 21,
-    89, 29, 179, 148, 247, 246, 156, 158, 207, 80, 186, 193, 88, 80, 103, 143, 8, 180, 32, 247,
-    203, 172, 44, 32, 111, 112, 182, 63, 1, 48, 140, 183, 67, 207, 15, 157, 61, 243, 43, 73, 40,
-    26, 200, 254, 206, 181, 185, 14, 217, 94, 28, 214, 203, 61, 181, 58, 173, 244, 15, 14, 0, 146,
-    11, 177, 33, 22, 46, 116, 213, 60, 13, 219, 98, 22, 171, 163, 113, 146, 71, 83, 85, 193, 175,
-    47, 65, 179, 248, 251, 227, 112, 205, 230, 163, 76, 69, 126, 31, 76, 107, 80, 150, 65, 137,
-    196, 116, 98, 11, 16, 131, 65, 135, 51, 138, 129, 177, 48, 88, 236, 90, 4, 50, 140, 104, 179,
-    143, 29, 222, 101, 115, 255, 103, 94, 101, 188, 73, 216, 118, 159, 51, 20, 101, 161, 119, 148,
-    201, 45, 2, 3, 1, 0, 1, 163, 130, 1, 122, 48, 130, 1, 118, 48, 14, 6, 3, 85, 29, 15, 1, 1, 255,
-    4, 4, 3, 2, 1, 6, 48, 15, 6, 3, 85, 29, 19, 1, 1, 255, 4, 5, 48, 3, 1, 1, 255, 48, 29, 6, 3,
-    85, 29, 14, 4, 22, 4, 20, 43, 208, 105, 71, 148, 118, 9, 254, 244, 107, 141, 46, 64, 166, 247,
-    71, 77, 127, 8, 94, 48, 31, 6, 3, 85, 29, 35, 4, 24, 48, 22, 128, 20, 43, 208, 105, 71, 148,
-    118, 9, 254, 244, 107, 141, 46, 64, 166, 247, 71, 77, 127, 8, 94, 48, 130, 1, 17, 6, 3, 85, 29,
-    32, 4, 130, 1, 8, 48, 130, 1, 4, 48, 130, 1, 0, 6, 9, 42, 134, 72, 134, 247, 99, 100, 5, 1, 48,
-    129, 242, 48, 42, 6, 8, 43, 6, 1, 5, 5, 7, 2, 1, 22, 30, 104, 116, 116, 112, 115, 58, 47, 47,
-    119, 119, 119, 46, 97, 112, 112, 108, 101, 46, 99, 111, 109, 47, 97, 112, 112, 108, 101, 99,
-    97, 47, 48, 129, 195, 6, 8, 43, 6, 1, 5, 5, 7, 2, 2, 48, 129, 182, 26, 129, 179, 82, 101, 108,
-    105, 97, 110, 99, 101, 32, 111, 110, 32, 116, 104, 105, 115, 32, 99, 101, 114, 116, 105, 102,
-    105, 99, 97, 116, 101, 32, 98, 121, 32, 97, 110, 121, 32, 112, 97, 114, 116, 121, 32, 97, 115,
-    115, 117, 109, 101, 115, 32, 97, 99, 99, 101, 112, 116, 97, 110, 99, 101, 32, 111, 102, 32,
-    116, 104, 101, 32, 116, 104, 101, 110, 32, 97, 112, 112, 108, 105, 99, 97, 98, 108, 101, 32,
-    115, 116, 97, 110, 100, 97, 114, 100, 32, 116, 101, 114, 109, 115, 32, 97, 110, 100, 32, 99,
-    111, 110, 100, 105, 116, 105, 111, 110, 115, 32, 111, 102, 32, 117, 115, 101, 44, 32, 99, 101,
-    114, 116, 105, 102, 105, 99, 97, 116, 101, 32, 112, 111, 108, 105, 99, 121, 32, 97, 110, 100,
-    32, 99, 101, 114, 116, 105, 102, 105, 99, 97, 116, 105, 111, 110, 32, 112, 114, 97, 99, 116,
-    105, 99, 101, 32, 115, 116, 97, 116, 101, 109, 101, 110, 116, 115, 46, 48, 13, 6, 9, 42, 134,
-    72, 134, 247, 13, 1, 1, 5, 5, 0, 3, 130, 1, 1, 0, 92, 54, 153, 76, 45, 120, 183, 237, 140, 155,
-    220, 243, 119, 155, 242, 118, 210, 119, 48, 79, 193, 31, 133, 131, 133, 27, 153, 61, 71, 55,
-    242, 169, 155, 64, 142, 44, 212, 177, 144, 18, 216, 190, 244, 115, 155, 238, 210, 100, 15, 203,
-    121, 79, 52, 216, 162, 62, 249, 120, 255, 107, 200, 7, 236, 125, 57, 131, 139, 83, 32, 211, 56,
-    196, 177, 191, 154, 79, 10, 107, 255, 43, 252, 89, 167, 5, 9, 124, 23, 64, 86, 17, 30, 116,
-    211, 183, 139, 35, 59, 71, 163, 213, 111, 36, 226, 235, 209, 183, 112, 223, 15, 69, 225, 39,
-    202, 241, 109, 120, 237, 231, 181, 23, 23, 168, 220, 126, 34, 53, 202, 37, 213, 217, 15, 214,
-    107, 212, 162, 36, 35, 17, 247, 161, 172, 143, 115, 129, 96, 198, 27, 91, 9, 47, 146, 178, 248,
-    68, 72, 240, 96, 56, 158, 21, 245, 61, 38, 103, 32, 138, 51, 106, 247, 13, 130, 207, 222, 235,
-    163, 47, 249, 83, 106, 91, 100, 192, 99, 51, 119, 247, 58, 7, 44, 86, 235, 218, 15, 33, 14,
-    218, 186, 115, 25, 79, 181, 217, 54, 127, 193, 135, 85, 217, 167, 153, 185, 50, 66, 251, 216,
-    213, 113, 158, 126, 161, 82, 183, 27, 189, 147, 66, 36, 18, 42, 199, 15, 29, 182, 77, 156, 94,
-    99, 200, 75, 128, 23, 80, 170, 138, 213, 218, 228, 252, 208, 9, 7, 55, 176, 117, 117, 33,
-];
+const APPLE_ROOT: &[u8] = include_bytes!("./apple_root.der");
 
 pub struct GsaClient {
     // client: SrpClient<'a, Sha256>,
@@ -280,104 +223,33 @@ impl GsaClient {
         // padder = padding.PKCS7(128).unpadder()
         // return padder.update(data) + padder.finalize()
 
-        type hmac256 = Hmac<Sha256>;
-        let mut hmac_key = hmac256::new_from_slice(&verifier.key()).expect("");
-        hmac_key.update(b"extra data key:");
-        let key = &hmac_key.finalize().into_bytes() as &[u8];
-        println!("key: {:?}", base64::encode(&key));
+        // type hmac256 = Hmac<Sha256>;
+        // let mut hmac_key = hmac256::new_from_slice(&verifier.key()).expect("");
+        // hmac_key.update(b"extra data key:");
+        // let key = &hmac_key.finalize().into_bytes() as &[u8];
+        // println!("key: {:?}", base64::encode(&key));
 
-        let mut hmac_iv = hmac256::new_from_slice(&verifier.key()).expect("");
-        hmac_iv.update(b"extra data iv:");
-        let iv = hmac_iv.finalize().into_bytes();
-        let iv = &iv[..16] as &[u8];
-        println!("iv: {:?}", base64::encode(&iv));
+        // let mut hmac_iv = hmac256::new_from_slice(&verifier.key()).expect("");
+        // hmac_iv.update(b"extra data iv:");
+        // let iv = hmac_iv.finalize().into_bytes();
+        // let iv = &iv[..16] as &[u8];
+        // println!("iv: {:?}", base64::encode(&iv));
 
-        //data = res["spd"]
+        // //data = res["spd"]
 
-        type Decrypt = cbc::Decryptor<aes::Aes128>;
-        let mut decryptor = Decrypt::new_from_slices(key, iv).unwrap();
-        let mut data = spd.to_vec();
-        let mut buffer = vec![0; data.len()];
-        let mut buffer: &mut GenericArray<u8> = GenericArray::from_mut_slice(&mut buffer);
-        decryptor.decrypt_padded_mut(&mut buffer).unwrap();
-        // let mut buffer = GenericArray::from_mut_slice(&mut buffer);
+        // type Decrypt = cbc::Decryptor<aes::Aes128>;
+        // let mut decryptor = Decrypt::new_from_slices(key, iv).unwrap();
+        // let mut data = spd.to_vec();
+        // let mut buffer = vec![0; data.len()];
+        // let mut buffer: &mut GenericArray<u8> = GenericArray::from_mut_slice(&mut buffer);
+        // decryptor.decrypt_padded_mut(&mut buffer).unwrap();
+        // // let mut buffer = GenericArray::from_mut_slice(&mut buffer);
 
-        let mut padder = Pkcs7::unpad(&mut buffer).unwrap();
+        // let mut padder = Pkcs7::unpad(&mut buffer).unwrap();
 
-        println!("buffer: {:?}", buffer);
+        // println!("buffer: {:?}", buffer);
 
         // let
         todo!()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn print_tests_pass() {
-        // not a real account
-        let bytes_a = base64::decode("XChHXELsQ+ljxTFbvRMUsGJxiDIlOh9f8e+JzoegmVcOdAXXtPNzkHpAbAgSjyA+vXrTA93+BUu8EJ9+4xZu9g==").unwrap();
-        let username = "apple3@f1sh.me";
-        let password = "WaffleTest123";
-        let salt = base64::decode("6fK6ailLUcp2kJswJVrKjQ==").unwrap();
-        let iters = 20832;
-
-        let mut password_hasher = sha2::Sha256::new();
-        password_hasher.update(&password.as_bytes());
-        let hashed_password = password_hasher.finalize();
-        // println!("Hashed password: {:?}", base64::encode(&hashed_password));
-
-        let mut password_buf = [0u8; 32];
-        pbkdf2::pbkdf2::<hmac::Hmac<Sha256>>(
-            &hashed_password,
-            &salt,
-            iters as u32,
-            &mut password_buf,
-        );
-        // println!("PBKDF2 Encrypted password: {:?}",base64::encode(&password_buf));
-
-        let identity_hash = SrpClient::<Sha256>::compute_identity_hash(&[], &password_buf);
-        let x = SrpClient::<Sha256>::compute_x(identity_hash.as_slice(), &salt);
-
-        // apub: N2XHuh/4P1urPoBvDocF0RCRIl2pliZYqg9p6wGH0nnJdckJPn3M00jEqoM4teqH03HjG1murdcZiNHb5YayufW//+asW01XB7nYIIVvGiUFLRypYITEKYWBQ6h2q02GaZspYJKy98V8Fwcvr0ri+al7zJo1X1aoRKINyjV5TywhhwmTleI1qJkf+JBRYKKqO1XFtOTpQsysWD3ZJdK3K78kSgT3q0kXE3oDRMiHPAO77GFJZErYTuvI6QPRbOgcrn+RKV6AsjR5tUQAoSGRdtibdZTAQijJg788qVg+OFVCNZoY9GYVxa+Ze1bPGdkkgCYicTE8iNFG9KlJ+QpKgQ==
-
-        let a_random = base64::decode("ywN1O32vmBogb5Fyt9M7Tn8bbzLtDDbcYgPFpSy8n9E=").unwrap();
-        let client = SrpClient::<Sha256>::new(&G_2048);
-
-        let a_pub_compute =
-            SrpClient::<Sha256>::compute_a_pub(&client, &BigUint::from_bytes_be(&a_random));
-        // expect it to be same to a_pub
-        println!(
-            "compute a_pub: {:?}",
-            base64::encode(&a_pub_compute.to_bytes_be())
-        );
-
-        let b_pub = base64::decode("HlWxsRmNi/9DCGxYCoqCTfdSvpbx3mrgFLQfOsgf3Rojn7MQQN/g63PwlBghUcVVB4//yAaRRnz/VIByl8thA9AKuVZl8k52PAHKSh4e7TuXSeYCFr0+GYu8/hFdMDl42219uzSuOXuaKGVKq6hxEAf3n3uXXgQRkXWtLFJ5nn1wq/emf46hYAHzc/pYyvckAdh9WDCw95IXbzKD8LcPw/0ZQoydMuXgW2ZKZ52fiyEs94IZ7L5RLL7jY1nVdwtsp2fxeqiZ3DNmVZ2GdNrbJGT//160tyd2evtUtehr8ygXNzjWdjV0cc4+1F38ywSPFyieVzVTYzDywRllgo3A5A==").unwrap();
-        println!("fixed b_pub: {:?}", base64::encode(&b_pub));
-        println!("");
-
-        println!("salt: {:?} iterations: {:?}", base64::encode(&salt), iters);
-
-        let verifier: SrpClientVerifier<Sha256> = SrpClient::<Sha256>::process_reply(
-            &client,
-            &a_random,
-            // &a_pub,
-            username.as_bytes(),
-            &password_buf,
-            &salt,
-            &b_pub,
-        )
-        .unwrap();
-
-        let m = verifier.proof();
-    }
-
-    #[test]
-    fn print_n_g() {
-        // println!("Print N/G test: ");
-        // println!("g2048 g: {:?}", &G_2048.g);
-        // println!("g2048 n: {:?}", &G_2048.n);
     }
 }
