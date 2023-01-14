@@ -200,56 +200,39 @@ impl GsaClient {
         };
 
         let m2 = res.get("M2").unwrap().as_data().unwrap();
-        let spd = res.get("spd").unwrap().as_data().unwrap();
         println!("M2: {:?}", m2);
         verifier.verify_server(&m2).unwrap();
 
         print!("Success!");
         println!("shared key {:?}", base64::encode(verifier.key()));
 
-        //python code
-        //         extra_data_key = create_session_key(usr, "extra data key:")
-        // extra_data_iv = create_session_key(usr, "extra data iv:")
-        // print("extra_data_key", b64encode(extra_data_key).decode("utf-8"))
-        // print("extra_data_iv", b64encode(extra_data_iv).decode("utf-8"))
-        // # Get only the first 16 bytes of the iv
-        // extra_data_iv = extra_data_iv[:16]
+        let spd = res.get("spd").unwrap().as_data().unwrap();
 
-        // # Decrypt with AES CBC
-        // cipher = Cipher(algorithms.AES(extra_data_key), modes.CBC(extra_data_iv))
-        // decryptor = cipher.decryptor()
-        // data = decryptor.update(data) + decryptor.finalize()
-        // # Remove PKCS#7 padding
-        // padder = padding.PKCS7(128).unpadder()
-        // return padder.update(data) + padder.finalize()
+        let decrypted_spd = Self::decrypt_cbc(&verifier, spd);
+        
+        let decoded_spd: plist::Dictionary = plist::from_bytes(&decrypted_spd).unwrap();
+        println!("Decoded SPD: {:?}", decoded_spd);
 
-        // type hmac256 = Hmac<Sha256>;
-        // let mut hmac_key = hmac256::new_from_slice(&verifier.key()).expect("");
-        // hmac_key.update(b"extra data key:");
-        // let key = &hmac_key.finalize().into_bytes() as &[u8];
-        // println!("key: {:?}", base64::encode(&key));
+        todo!();
+    }
 
-        // let mut hmac_iv = hmac256::new_from_slice(&verifier.key()).expect("");
-        // hmac_iv.update(b"extra data iv:");
-        // let iv = hmac_iv.finalize().into_bytes();
-        // let iv = &iv[..16] as &[u8];
-        // println!("iv: {:?}", base64::encode(&iv));
+    fn create_session_key(usr: &SrpClientVerifier<Sha256>, name: &str) -> Vec<u8> {
+        Hmac::<Sha256>::new_from_slice(&usr.key())
+            .unwrap()
+            .chain_update(name.as_bytes())
+            .finalize()
+            .into_bytes()
+            .to_vec()
+    }
 
-        // //data = res["spd"]
+    fn decrypt_cbc(usr: &SrpClientVerifier<Sha256>, data: &[u8]) -> Vec<u8> {
+        let extra_data_key = Self::create_session_key(usr, "extra data key:");
+        let extra_data_iv = Self::create_session_key(usr, "extra data iv:");
+        let extra_data_iv = &extra_data_iv[..16];
 
-        // type Decrypt = cbc::Decryptor<aes::Aes128>;
-        // let mut decryptor = Decrypt::new_from_slices(key, iv).unwrap();
-        // let mut data = spd.to_vec();
-        // let mut buffer = vec![0; data.len()];
-        // let mut buffer: &mut GenericArray<u8> = GenericArray::from_mut_slice(&mut buffer);
-        // decryptor.decrypt_padded_mut(&mut buffer).unwrap();
-        // // let mut buffer = GenericArray::from_mut_slice(&mut buffer);
-
-        // let mut padder = Pkcs7::unpad(&mut buffer).unwrap();
-
-        // println!("buffer: {:?}", buffer);
-
-        // let
-        todo!()
+        cbc::Decryptor::<aes::Aes256>::new_from_slices(&extra_data_key, extra_data_iv)
+            .unwrap()
+            .decrypt_padded_vec_mut::<Pkcs7>(&data)
+            .unwrap()
     }
 }
